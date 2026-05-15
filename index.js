@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import { GUI } from 'lil-gui';
 
 import { LineSegmentsGeometry } from "three/addons/lines/LineSegmentsGeometry.js";
 import { LineMaterial } from "three/addons/lines/LineMaterial.js";
@@ -27,7 +28,22 @@ const metalMap = loader.load(METALNESS_PATH);
 const pyraMap = loader.load(PYRAMID_PATH);
 const glyphAtlasMap = loader.load(GLYPH_PATH);
 
-// colorMap.colorSpace = THREE.SRGBColorSpace; // Set correct color space for the base color map
+colorMap.colorSpace = THREE.SRGBColorSpace; // Set correct color space for the base color map
+
+// Get canvas container from HTML
+const canvasContainer = document.getElementById('canvas-container');
+// Clock for animation
+let clock = new THREE.Clock();
+
+// GUI
+let gui;
+let settings = {
+  effectsToggle: false,
+}
+// Attach GUI to HTML gui-container
+const guiContainer = document.getElementById('gui-container');
+gui = new GUI({ container: guiContainer, title: 'Graphics Settings' });
+gui.add(settings, 'effectsToggle').name('Effects').onChange((value) => settings.effectsToggle = value);
 
 // Window size
 const sizes = {
@@ -69,13 +85,13 @@ const renderer = new THREE.WebGLRenderer({ antialias: false });
 // "ensures the canvas resolution matches the screen's physical pixels, preventing blurriness"
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.setSize(sizes.width, sizes.height);
-document.body.appendChild(renderer.domElement);
+canvasContainer.appendChild(renderer.domElement); // append renderer's canvas to HTML canvasContainer
 
 // Post-Processing Effects Composer (wraps our renderer)
 const composer = new EffectComposer(renderer);
 // "ensures the canvas resolution matches the screen's physical pixels, preventing blurriness"
 composer.setSize(sizes.width, sizes.height);
-composer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+// composer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // - not needed since we're using the renderer's pixel ratio
 
 // Add Render Pass to composer
 const renderPass = new RenderPass(scene, camera);
@@ -85,13 +101,13 @@ composer.addPass(renderPass);
 
 // Add Afterimage Pass to composer
 const afterimagePass = new AfterimagePass();
-afterimagePass.uniforms["damp"].value = 0.85; // Lower = shorter trails, 0.99 = infinite
+afterimagePass.uniforms['damp'].value = 0.7; // Lower = shorter trails, 0.99 = infinite
 composer.addPass(afterimagePass);
 
 // Add Bloom Pass to composer
 const bloomPass = new UnrealBloomPass(
   new THREE.Vector2(sizes.width, sizes.height),
-  1.5, // Strength
+  1.2, // Strength
   0.45, // Radius
   0.85, // Threshold
 );
@@ -99,15 +115,16 @@ composer.addPass(bloomPass);
 
 // Add RBG Pass to composer
 const rgbPass = new ShaderPass(RGBShiftShader);
-rgbPass.uniforms["amount"].value = 0.0015;
+rgbPass.uniforms['amount'].value = 0.0015; // Lower = less color shift
 composer.addPass(rgbPass);
 
 // Add Gamma Correction to composer (to brighten)
 const gammaPass = new ShaderPass(GammaCorrectionShader);
 composer.addPass(gammaPass);
+gammaPass.renderToScreen = true; // Ensures the final pass is output to the screen
 
 // Fog
-const fog = new THREE.Fog("#000000", 1, 2.5);
+const fog = new THREE.Fog("#000000", 1, 2.5); // Color, Near, Far
 scene.fog = fog;
 
 /* --------------------
@@ -351,10 +368,10 @@ for (let i = 0; i < num_glyphs; i++) {
   const glyph_mat = new THREE.MeshStandardMaterial({
     map: glyph_map,
     transparent: true,
-    alphaTest: 0.5,
+    alphaTest: 0.5, // Allows transparent pixels to be seen
     color: 0x00aaff,
     emissive: 0x00aaff,
-    emissiveIntensity: 7,
+    emissiveIntensity: 7, // Triggers bright blue bloom
     side: THREE.DoubleSide,
   });
 
@@ -408,7 +425,9 @@ window.addEventListener("resize", () => {
 
 let time = 0;
 function animate() {
-  time += 0.01;
+  // Update time via clock to prevent inconsistent framerates on different devices
+  const delta = clock.getDelta();
+  time += delta * 0.7;
   let eye_z_s = 0.02 * Math.cos(time);
   let pupil_x_s = 0.01 * Math.sin(time * 2);
   let eye_x_s = 0.01 * Math.sin(time * 2);
@@ -419,8 +438,13 @@ function animate() {
   let glyph_z_s = 0.3 * Math.sin(time * 1.5);
 
   controls.update();
-  renderer.render(scene, camera);
-  //   composer.render(); // render while keeping effects
+
+  if (settings.effectsToggle) {
+    composer.render(delta);
+  } else {
+    renderer.render(scene, camera);
+  }
+
   floor.position.z = (time * 0.15) % 2;
   floor2.position.z = ((time * 0.15) % 2) - 2;
 
@@ -428,14 +452,14 @@ function animate() {
   eye.position.x = eye_x_s;
   eye.position.z = eye_z_s + 0.19;
 
-  hat_group.rotation.y += 0.005;
+  hat_group.rotation.y += delta * 0.7; 
   bill.position.z = bill_z_s - 1.3;
   bill.rotation.x = bill_x_s + 0.1;
   bill.rotation.y = bill_y_s;
   bill.rotation.z = bill_rz_s;
 
   glyph_group.position.z = glyph_z_s - 1;
-  glyph_group.rotation.z += 0.007;
+  glyph_group.rotation.z += delta * 0.7;
 
   requestAnimationFrame(animate);
 }

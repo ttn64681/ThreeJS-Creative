@@ -2,19 +2,55 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>ThreeJS Vaporwave</title>
+    <title>Bill Cypher Vaporwave</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Bill Cypher in ThreeJS Vaporwave. Also an Amongus Glyph if you pay attention.">
+    <meta name="author" content="Thai Tam Minh Nguyen">
+    <meta name="keywords" content="Three.js, Vaporwave, Bill Cypher, Gravity Falls, 3D, Interactive, WebGL ">
+    <meta property="og:title" content="Bill Cypher Vaporwave">
+    <meta property="og:description" content="Bill Cypher in ThreeJS Vaporwave. Also an Amongus Glyph if you pay attention.">
+    <!-- <meta property="og:image" content="https://domain-expansion-exhibit.vercel.app/assets/domain1-wallpaper.webp"> -->
+    <meta property="og:image:alt" content="A screenshot of Bill Cypher in a ThreeJS Vaporwave scene">
+    <!-- <meta property="og:url" content="https://domain-expansion-exhibit.vercel.app/"> -->
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="en_US">
+    <meta property="og:site_name" content="Bill Cypher Vaporwave">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+
+    <!-- <link rel="icon" type="image/svg+xml" href="assets/domain1-icon.svg"> -->
     <script type="importmap">
         {
             "imports": {
-                "three": "https://unpkg.com/three@0.182.0/build/three.module.js",
-                "three/addons/": "https://unpkg.com/three@0.182.0/examples/jsm/"
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/",
+                "lil-gui": "https://unpkg.com/lil-gui@0.19.1/dist/lil-gui.esm.min.js"
             }
         }
     </script>
     <script type="module" src="index.js"></script>
 </head>
-<body>
 
+<body>
+    <div id="gui-container"></div>
+    <div id="canvas-container"></div>
 </body>
+
+<style>
+    #gui-container {
+        position: fixed;
+        top: 0;
+        right: 0;
+        z-index: 1000;
+    }
+    #canvas-container {
+        width: 100%;
+        height: 100%;
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 0;
+    }
+</style>
+
 </html>
