@@ -409,19 +409,28 @@ const light_r_helper = new THREE.SpotLightHelper(light_right);
 scene.add(light_l_helper, light_r_helper);
 
 // Resize updater for renderer/composer sizing
-window.addEventListener("resize", () => {
+function onWindowResize() {
   sizes.width = window.innerWidth;
   sizes.height = window.innerHeight;
 
   camera.aspect = sizes.width / sizes.height;
   camera.updateProjectionMatrix();
 
-  // renderer.setSize(sizes.width, sizes.height);
+  renderer.setSize(sizes.width, sizes.height);
   composer.setSize(sizes.width, sizes.height);
-  pyra_line_mat.resolution.set(sizes.width, sizes.height);
-  brim_line_mat.resolution.set(sizes.width, sizes.height);
-  top_line_mat.resolution.set(sizes.width, sizes.height);
-});
+
+  // Update line material resolutions
+  const bufferSize = new THREE.Vector2();
+  // Get the size of the drawing buffer
+  renderer.getDrawingBufferSize(bufferSize);
+  pyra_line_mat.resolution.copy(bufferSize);
+  brim_line_mat.resolution.copy(bufferSize);
+  top_line_mat.resolution.copy(bufferSize);
+
+}
+
+window.addEventListener("resize", onWindowResize);
+onWindowResize();
 
 let time = 0;
 function animate() {
